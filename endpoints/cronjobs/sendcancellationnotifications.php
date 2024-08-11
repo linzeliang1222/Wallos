@@ -24,6 +24,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
     $emailNotificationsEnabled = false;
     $gotifyNotificationsEnabled = false;
     $telegramNotificationsEnabled = false;
+    $webhookNotificationsEnabled = false;
     $pushoverNotificationsEnabled = false;
     $discordNotificationsEnabled = false;
     $ntfyNotificationsEnabled = false;
@@ -108,8 +109,27 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         $ntfy['headers'] = $row["headers"];
     }
 
+    // Check if Webhook notifications are enabled and get the settings
+    $query = "SELECT * FROM webhook_notifications WHERE user_id = :userId";
+    $stmt = $db->prepare($query);
+    $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+    $result = $stmt->execute();
+
+    if ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+        $webhookNotificationsEnabled = $row['enabled'];
+        $webhook['url'] = $row["url"];
+        $webhook['request_method'] = $row["request_method"];
+        $webhook['headers'] = $row["headers"];
+        $webhook['payload'] = $row["payload"];
+        $webhook['iterator'] = $row["iterator"];
+        if ($webhook['iterator'] === "") {
+            $webhook['iterator'] = "subscriptions";
+        }
+    }
+
     $notificationsEnabled = $emailNotificationsEnabled || $gotifyNotificationsEnabled || $telegramNotificationsEnabled ||
-        $pushoverNotificationsEnabled || $discordNotificationsEnabled ||$ntfyNotificationsEnabled;
+        $webhookNotificationsEnabled || $pushoverNotificationsEnabled || $discordNotificationsEnabled ||
+        $ntfyNotificationsEnabled;
 
     // If no notifications are enabled, no need to run
     if (!$notificationsEnabled) {
@@ -165,6 +185,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         $notify = [];
         $i = 0;
         $currentDate = new DateTime('now');
+        $currentDate->setTime(0, 0, 0);
         while ($rowSubscription = $resultSubscriptions->fetchArray(SQLITE3_ASSOC)) {
             $notify[$rowSubscription['payer_user_id']][$i]['name'] = $rowSubscription['name'];
             $notify[$rowSubscription['payer_user_id']][$i]['price'] = $rowSubscription['price'] . $currencies[$rowSubscription['currency_id']]['symbol'];
@@ -177,6 +198,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
         if (!empty($notify)) {
 
+            $messageChinese = "以下订阅今日到期：\n";
+
             // Email notifications if enabled
             if ($emailNotificationsEnabled) {
 
@@ -188,11 +211,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $defaultName = $defaultUser['username'];
 
                 foreach ($notify as $userId => $perUser) {
-                    $message = "The following subscriptions are up for cancellation:\n";
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] ."\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $mail = new PHPMailer(true);
                     $mail->CharSet = "UTF-8";
@@ -238,15 +258,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
                     $title = translate('wallos_notification', $i18n);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for cancellation:\n";
-                    } else {
-                        $message = "The following subscriptions are up for cancellation:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . "\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $postfields = [
                         'content' => $message
@@ -290,15 +303,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for cancellation:\n";
-                    } else {
-                        $message = "The following subscriptions are up for cancellation:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . "\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $data = array(
                         'message' => $message,
@@ -338,15 +344,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for cancellation:\n";
-                    } else {
-                        $message = "The following subscriptions are up for cancellation:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . "\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $data = array(
                         'chat_id' => $telegram['chatId'],
@@ -386,15 +385,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for cancellation:\n";
-                    } else {
-                        $message = "The following subscriptions are up for cancellation:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . "\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, "https://api.pushover.net/1/messages.json");
@@ -427,15 +419,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for cancellation:\n";
-                    } else {
-                        $message = "The following subscriptions are up for cancellation:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . "\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $headers = json_decode($ntfy["headers"], true);
                     $customheaders = array_map(function ($key, $value) {
@@ -463,15 +448,54 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     }
                 }
             }
+            
+            // Webhook notifications if enabled
+            if ($webhookNotificationsEnabled) {
+                // Get name of user from household table
+                $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
+                $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+                $result = $stmt->execute();
+                $user = $result->fetchArray(SQLITE3_ASSOC);
 
+                $message = $messageChinese;
+                $message .= getSubscriptionItems($perUser);
+
+                $payload = str_replace("{{content}}", $message, $webhook['payload']); // The default value for all subscriptions
+
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $webhook['url']);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $webhook['request_method']);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                if (!empty($webhook['headers'])) {
+                    $customheaders = preg_split("/\r\n|\n|\r/", $webhook['headers']);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, $customheaders);
+                }
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $response = curl_exec($ch);
+                curl_close($ch);
+
+                if ($response === false) {
+                    echo "Error sending notifications: " . curl_error($ch) . "<br />";
+                } else {
+                    echo "Webhook Notifications sent<br />";
+                }
+
+            }
         } else {
             if (php_sapi_name() !== 'cli') {
                 echo "Nothing to notify.<br />";
             }
         }
-
     }
+}
 
+function getSubscriptionItems($perUser) {
+    $subscriptionItem = "";
+    foreach ($perUser as $index => $subscription) {
+        $subscriptionItem .= "【" . ($index+1) . "】" . $subscription['name'] . " - " . $subscription['price'] . "\n";
+    }
+    return $subscriptionItem;
 }
 
 ?>
