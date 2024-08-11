@@ -198,6 +198,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         $notify = [];
         $i = 0;
         $currentDate = new DateTime('now');
+        $currentDate->setTime(0, 0, 0);
         while ($rowSubscription = $resultSubscriptions->fetchArray(SQLITE3_ASSOC)) {
             if ($rowSubscription['notify_days_before'] !== 0) {
                 $daysToCompare = $rowSubscription['notify_days_before'];
@@ -205,20 +206,26 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $daysToCompare = $days;
             }
             $nextPaymentDate = new DateTime($rowSubscription['next_payment']);
-            $difference = $currentDate->diff($nextPaymentDate)->days + 1;
-            if ($difference === $daysToCompare) {
+            $nextPaymentDate->setTime(0, 0, 0);
+            if ($currentDate > $nextPaymentDate) {
+                continue;
+            }
+            $difference = $currentDate->diff($nextPaymentDate)->days;
+            if ($difference <= $daysToCompare) {
                 $notify[$rowSubscription['payer_user_id']][$i]['name'] = $rowSubscription['name'];
                 $notify[$rowSubscription['payer_user_id']][$i]['price'] = $rowSubscription['price'] . $currencies[$rowSubscription['currency_id']]['symbol'];
                 $notify[$rowSubscription['payer_user_id']][$i]['currency'] = $currencies[$rowSubscription['currency_id']]['name'];
                 $notify[$rowSubscription['payer_user_id']][$i]['category'] = $categories[$rowSubscription['category_id']]['name'];
                 $notify[$rowSubscription['payer_user_id']][$i]['payer'] = $household[$rowSubscription['payer_user_id']]['name'];
                 $notify[$rowSubscription['payer_user_id']][$i]['date'] = $rowSubscription['next_payment'];
-                $notify[$rowSubscription['payer_user_id']][$i]['days'] = $daysToCompare;
+                $notify[$rowSubscription['payer_user_id']][$i]['days'] = $difference;
                 $i++;
             }
         }
 
         if (!empty($notify)) {
+
+            $messageChinese = "以下订阅即将到期，请及时续费：\n";
 
             // Email notifications if enabled
             if ($emailNotificationsEnabled) {
@@ -231,12 +238,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 $defaultName = $defaultUser['username'];
 
                 foreach ($notify as $userId => $perUser) {
-                    $message = "The following subscriptions are up for renewal:\n";
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $mail = new PHPMailer(true);
                     $mail->CharSet = "UTF-8";
@@ -282,16 +285,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
                     $title = translate('wallos_notification', $i18n);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for renewal:\n";
-                    } else {
-                        $message = "The following subscriptions are up for renewal:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $postfields = [
                         'content' => $message
@@ -335,16 +330,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for renewal:\n";
-                    } else {
-                        $message = "The following subscriptions are up for renewal:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $data = array(
                         'message' => $message,
@@ -384,16 +371,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for renewal:\n";
-                    } else {
-                        $message = "The following subscriptions are up for renewal:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $data = array(
                         'chat_id' => $telegram['chatId'],
@@ -433,16 +412,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for renewal:\n";
-                    } else {
-                        $message = "The following subscriptions are up for renewal:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, "https://api.pushover.net/1/messages.json");
@@ -475,16 +446,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $result = $stmt->execute();
                     $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                    if ($user['name']) {
-                        $message = $user['name'] . ", the following subscriptions are up for renewal:\n";
-                    } else {
-                        $message = "The following subscriptions are up for renewal:\n";
-                    }
-
-                    foreach ($perUser as $subscription) {
-                        $dayText = $subscription['days'] == 1 ? "Tomorrow" : "In " . $subscription['days'] . " days";
-                        $message .= $subscription['name'] . " for " . $subscription['price'] . " (" . $dayText . ")\n";
-                    }
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
                     $headers = json_decode($ntfy["headers"], true);
                     $customheaders = array_map(function ($key, $value) {
@@ -515,52 +478,21 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
             // Webhook notifications if enabled
             if ($webhookNotificationsEnabled) {
-                // Get webhook payload and turn it into a json object
+                // Get name of user from household table
+                $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
+                $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+                $result = $stmt->execute();
+                $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                $payload = str_replace("{{days_until}}", $days, $webhook['payload']); // The default value for all subscriptions
-                $payload_json = json_decode($payload, true);
+                $message = $messageChinese;
+                $message .= getSubscriptionItems($perUser);
 
-                $subscription_template = $payload_json["{{subscriptions}}"];
-                $subscriptions = [];
-
-                foreach ($notify as $userId => $perUser) {
-                    // Get name of user from household table
-                    $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
-                    $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-                    $result = $stmt->execute();
-                    $user = $result->fetchArray(SQLITE3_ASSOC);
-
-                    if ($user['name']) {
-                        $payer = $user['name'];
-                    }
-
-                    foreach ($perUser as $k => $subscription) {
-                        $temp_subscription = $subscription_template[0];
-
-                        foreach ($temp_subscription as $key => $value) {
-                            if (is_string($value)) {
-                                $temp_subscription[$key] = str_replace("{{subscription_name}}", $subscription['name'], $value);
-                                $temp_subscription[$key] = str_replace("{{subscription_price}}", $subscription['price'], $temp_subscription[$key]);
-                                $temp_subscription[$key] = str_replace("{{subscription_currency}}", $subscription['currency'], $temp_subscription[$key]);
-                                $temp_subscription[$key] = str_replace("{{subscription_category}}", $subscription['category'], $temp_subscription[$key]);
-                                $temp_subscription[$key] = str_replace("{{subscription_payer}}", $subscription['payer'], $temp_subscription[$key]);
-                                $temp_subscription[$key] = str_replace("{{subscription_date}}", $subscription['date'], $temp_subscription[$key]);
-                                $temp_subscription[$key] = str_replace("{{subscription_days_until_payment}}", $subscription['days'], $temp_subscription[$key]); // The de facto value for this subscription
-                            }
-                        }
-                        $subscriptions[] = $temp_subscription;
-
-                    }
-                }
-
-                $payload_json["{{subscriptions}}"] = $subscriptions;
-                $payload_json[$webhook['iterator']] = $subscriptions;
-                unset($payload_json["{{subscriptions}}"]);
+                $payload = str_replace("{{content}}", $message, $webhook['payload']); // The default value for all subscriptions
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $webhook['url']);
                 curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $webhook['request_method']);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload_json));
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
                 if (!empty($webhook['headers'])) {
                     $customheaders = preg_split("/\r\n|\n|\r/", $webhook['headers']);
                     curl_setopt($ch, CURLOPT_HTTPHEADER, $customheaders);
@@ -577,16 +509,27 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                 }
 
             }
-
-
         } else {
             if (php_sapi_name() !== 'cli') {
                 echo "Nothing to notify.<br />";
             }
         }
-
     }
+}
 
+function getSubscriptionItems($perUser) {
+    $subscriptionItem = "";
+    foreach ($perUser as $index => $subscription) {
+        if ($subscription['days'] === 0) {
+            $dayText = "今天到期";
+        } else if ($subscription['days'] === 1) {
+            $dayText = "明天到期";
+        } else {
+            $dayText = $subscription['days'] . " 天后到期";
+        }
+        $subscriptionItem .= "【" . ($index+1) . "】" . $subscription['name'] . " - " . $subscription['price'] . "（" . $dayText . "）\n";
+    }
+    return $subscriptionItem;
 }
 
 ?>
