@@ -451,36 +451,37 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
             
             // Webhook notifications if enabled
             if ($webhookNotificationsEnabled) {
-                // Get name of user from household table
-                $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
-                $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
-                $result = $stmt->execute();
-                $user = $result->fetchArray(SQLITE3_ASSOC);
+                foreach ($notify as $userId => $perUser) {
+                    // Get name of user from household table
+                    $stmt = $db->prepare('SELECT * FROM household WHERE id = :userId');
+                    $stmt->bindValue(':userId', $userId, SQLITE3_INTEGER);
+                    $result = $stmt->execute();
+                    $user = $result->fetchArray(SQLITE3_ASSOC);
 
-                $message = $messageChinese;
-                $message .= getSubscriptionItems($perUser);
+                    $message = $messageChinese;
+                    $message .= getSubscriptionItems($perUser);
 
-                $payload = str_replace("{{content}}", $message, $webhook['payload']); // The default value for all subscriptions
+                    $payload = str_replace("{{content}}", $message, $webhook['payload']); // The default value for all subscriptions
 
-                $ch = curl_init();
-                curl_setopt($ch, CURLOPT_URL, $webhook['url']);
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $webhook['request_method']);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
-                if (!empty($webhook['headers'])) {
-                    $customheaders = preg_split("/\r\n|\n|\r/", $webhook['headers']);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, $customheaders);
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $webhook['url']);
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $webhook['request_method']);
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
+                    if (!empty($webhook['headers'])) {
+                        $customheaders = preg_split("/\r\n|\n|\r/", $webhook['headers']);
+                        curl_setopt($ch, CURLOPT_HTTPHEADER, $customheaders);
+                    }
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                    $response = curl_exec($ch);
+                    curl_close($ch);
+
+                    if ($response === false) {
+                        echo "Error sending notifications: " . curl_error($ch) . "<br />";
+                    } else {
+                        echo "Webhook Notifications sent<br />";
+                    }
                 }
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                $response = curl_exec($ch);
-                curl_close($ch);
-
-                if ($response === false) {
-                    echo "Error sending notifications: " . curl_error($ch) . "<br />";
-                } else {
-                    echo "Webhook Notifications sent<br />";
-                }
-
             }
         } else {
             if (php_sapi_name() !== 'cli') {
