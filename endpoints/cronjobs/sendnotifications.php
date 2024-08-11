@@ -263,7 +263,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
                     $mail->setFrom($email['fromEmail'], 'Wallos App');
                     $mail->addAddress($emailaddress, $name);
 
-                    $mail->Subject = 'Wallos Notification';
+                    $mail->Subject = 'Wallos 订阅续费通知';
                     $mail->Body = $message;
 
                     if ($mail->send()) {
