@@ -226,10 +226,10 @@ function completePaymentSubscription(event, id) {
   })
     .then(response => {
       if (response.ok) {
-        showSuccessMessage(translate('subscription_renewal_successfully'));
+        showSuccessMessage(translate('subscription_renewal_successfully', $i18n));
         fetchSubscriptions();
       } else {
-        showErrorMessage(translate('error_renewal_subscription'));
+        showErrorMessage(translate('error_renewal_subscription', $i18n));
       }
     })
     .catch(error => {
