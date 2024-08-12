@@ -173,6 +173,8 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
         // Get current date to check which subscriptions are set to notify for cancellation
         $currentDate = new DateTime('now');
+        // 到期前一天进行通知
+        $currentDate->modify('-1 day');
         $currentDate = $currentDate->format('Y-m-d');
 
         $query = "SELECT * FROM subscriptions WHERE user_id = :user_id AND inactive = :inactive AND cancellation_date = :cancellationDate ORDER BY payer_user_id ASC";

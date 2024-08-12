@@ -141,6 +141,11 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                         <?php include $imagePath . "images/siteicons/svg/clone.php"; ?>
                         <?= translate('clone', $i18n) ?>
                     </li>
+                    <li class="next" title="<?= translate('update_next_payment', $i18n) ?>"
+                        onClick="updateNextPaymentSubscription(event, <?= $subscription['id'] ?>)">
+                        <?php include $imagePath . "images/siteicons/svg/next.php"; ?>
+                        <?= translate('update_next_payment', $i18n) ?>
+                    </li>
                 </ul>
             </div>
             <div class="subscription-secondary">

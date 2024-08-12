@@ -218,6 +218,31 @@ function cloneSubscription(event, id) {
     });
 }
 
+function updateNextPaymentSubscription(event, id) {
+  event.stopPropagation();
+  event.preventDefault();
+  fetch(`endpoints/subscription/updatenextpayment.php?id=${id}`, {
+    method: 'PUT'
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(translate('network_response_error'));
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
+        fetchSubscriptions();
+        showSuccessMessage(decodeURI(data.message));
+      } else {
+        showErrorMessage(data.message || translate('error'));
+      }
+    })
+    .catch(error => {
+      showErrorMessage(error.message || translate('error'));
+    });
+}
+
 function setSearchButtonStatus() {
 
   const nameInput = document.querySelector("#name");

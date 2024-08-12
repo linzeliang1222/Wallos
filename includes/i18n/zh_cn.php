@@ -72,6 +72,7 @@ $i18n = [
     "clear_filters" => "清除筛选",
     "no_matching_subscriptions" => "没有匹配的订阅",
     "clone" => "克隆",
+    "update_next_payment" => "更新下次订阅日期",
 
     // 订阅表单
     "add_subscription" => "添加订阅",
