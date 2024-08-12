@@ -126,6 +126,11 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <ul class="actions">
+                    <li class="complete" title="<?= translate('complete_payment', $i18n) ?>"
+                        onClick="completePaymentSubscription(event, <?= $subscription['id'] ?>)">
+                        <?php include $imagePath . "images/siteicons/svg/complete.php"; ?>
+                        <?= translate('complete_payment', $i18n) ?>
+                    </li>
                     <li class="edit" title="<?= translate('edit_subscription', $i18n) ?>"
                         onClick="openEditSubscription(event, <?= $subscription['id'] ?>)">
                         <?php include $imagePath . "images/siteicons/svg/edit.php"; ?>
@@ -140,11 +145,6 @@ function printSubscriptions($subscriptions, $sort, $categories, $members, $i18n,
                         onClick="cloneSubscription(event, <?= $subscription['id'] ?>)">
                         <?php include $imagePath . "images/siteicons/svg/clone.php"; ?>
                         <?= translate('clone', $i18n) ?>
-                    </li>
-                    <li class="complete" title="<?= translate('complete_payment', $i18n) ?>"
-                        onClick="completePaymentSubscription(event, <?= $subscription['id'] ?>)">
-                        <?php include $imagePath . "images/siteicons/svg/complete.php"; ?>
-                        <?= translate('complete_payment', $i18n) ?>
                     </li>
                 </ul>
             </div>
