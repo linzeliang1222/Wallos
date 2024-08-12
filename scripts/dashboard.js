@@ -210,11 +210,11 @@ function cloneSubscription(event, id) {
         fetchSubscriptions();
         showSuccessMessage(decodeURI(data.message));
       } else {
-        showErrorMessage(data.message || translate('error'));
+        showErrorMessage(translate('error_renewal_subscription'));
       }
     })
     .catch(error => {
-      showErrorMessage(error.message || translate('error'));
+      console.error('Error:', error);
     });
 }
 
@@ -225,15 +225,9 @@ function completePaymentSubscription(event, id) {
     method: 'PUT'
   })
     .then(response => {
-      if (!response.ok) {
-        throw new Error(translate('network_response_error'));
-      }
-      return response.json();
-    })
-    .then(data => {
-      if (data.success) {
+      if (response.ok) {
+        showSuccessMessage(translate('subscription_renewal_successfully'));
         fetchSubscriptions();
-        showSuccessMessage(decodeURI(data.message));
       } else {
         showErrorMessage(data.message || translate('error'));
       }

@@ -285,7 +285,9 @@ $i18n = [
     "error_fetching_image" => "Error fetching image",
     "subscription_updated_successfuly" => "Subscription updated successfully",
     "subscription_added_successfuly" => "Subscription added successfully",
+    "subscription_renewal_successfully" => "Subscription renewal successfully",
     "error_deleting_subscription" => "Error deleting subscription.",
+    "error_renewal_subscription" => "Error renewal subscription.",
     "invalid_request_method" => "Invalid request method.",
     // User
     "error_updating_user_data" => "Error updating user data.",

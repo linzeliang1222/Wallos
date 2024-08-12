@@ -48,16 +48,10 @@
                 $updateStmt->bindValue(':subscriptionId', $subscriptionId);
 
                 if ($updateStmt->execute()) {
-                    $response = [
-                        "success" => true,
-                        "message" => translate('success', $i18n)
-                    ];
-                    echo json_encode($response);
+                    http_response_code(204);
                 } else {
-                    die(json_encode([
-                        "success" => false,
-                        "message" => translate("error", $i18n)
-                    ]));
+                    http_response_code(500);
+                    echo json_encode(array("message" => translate('error_renewal_subscription', $i18n)));
                 }
             }
         } else {

@@ -301,7 +301,9 @@ $i18n = [
     "error_fetching_image" => "获取图片时出错",
     "subscription_updated_successfuly" => "订阅已成功更新",
     "subscription_added_successfuly" => "订阅已成功添加",
+    "subscription_renewal_successfully" => "订阅已成功续费",
     "error_deleting_subscription" => "删除订阅时出错。",
+    "error_renewal_subscription" => "续费订阅时出错。",
     "invalid_request_method" => "请求方法无效。",
 
     // User
