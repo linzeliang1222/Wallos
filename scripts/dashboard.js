@@ -225,15 +225,21 @@ function completePaymentSubscription(event, id) {
     method: 'PUT'
   })
     .then(response => {
-      if (response.ok) {
-        showSuccessMessage(translate('subscription_renewal_successfully', $i18n));
+      if (!response.ok) {
+        throw new Error(translate('network_response_error'));
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data.success) {
         fetchSubscriptions();
+        showSuccessMessage(decodeURI(data.message));
       } else {
-        showErrorMessage(translate('error_renewal_subscription', $i18n));
+        showErrorMessage(data.message || translate('error'));
       }
     })
     .catch(error => {
-      console.error('Error:', error);
+      showErrorMessage(error.message || translate('error'));
     });
 }
 
