@@ -1,9 +1,9 @@
 :root {
-    --main-color: #007bff;
+    --main-color: #5096fa;
     --main-color-rgb: 0, 123, 255;
-    --accent-color: #8fbffa;
+    --accent-color: #ecebfa;
     --accent-color-rgb: 143, 191, 250;
-    --hover-color: #0056b3;
+    --hover-color: #4187fa;
     --hover-color-rgb: 0, 86, 179;
     --error-color: #f45a40;
     --error-color-rgb: 244, 90, 64;

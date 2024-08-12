@@ -210,11 +210,11 @@ function cloneSubscription(event, id) {
         fetchSubscriptions();
         showSuccessMessage(decodeURI(data.message));
       } else {
-        showErrorMessage(translate('error_renewal_subscription'));
+        showErrorMessage(data.message || translate('error'));
       }
     })
     .catch(error => {
-      console.error('Error:', error);
+      showErrorMessage(error.message || translate('error'));
     });
 }
 
@@ -229,11 +229,11 @@ function completePaymentSubscription(event, id) {
         showSuccessMessage(translate('subscription_renewal_successfully'));
         fetchSubscriptions();
       } else {
-        showErrorMessage(data.message || translate('error'));
+        showErrorMessage(translate('error_renewal_subscription'));
       }
     })
     .catch(error => {
-      showErrorMessage(error.message || translate('error'));
+      console.error('Error:', error);
     });
 }
 
