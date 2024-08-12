@@ -218,10 +218,10 @@ function cloneSubscription(event, id) {
     });
 }
 
-function updateNextPaymentSubscription(event, id) {
+function completePaymentSubscription(event, id) {
   event.stopPropagation();
   event.preventDefault();
-  fetch(`endpoints/subscription/updatenextpayment.php?id=${id}`, {
+  fetch(`endpoints/subscription/completepayment.php?id=${id}`, {
     method: 'PUT'
   })
     .then(response => {

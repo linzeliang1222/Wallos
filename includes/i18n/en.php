@@ -68,7 +68,7 @@ $i18n = [
     "clear_filters" => "Clear Filters",
     "no_matching_subscriptions" => "No matching subscriptions",
     "clone" => "Clone",
-    "update_next_payment" => "Update next payment",
+    "complete_payment" => "Complete payment",
     // Subscription form
     "add_subscription" => "Add subscription",
     "edit_subscription" => "Edit subscription",
