@@ -11,8 +11,7 @@ fi
 
 # Set PHP timezone
 PHP_TIMEZONE=${TZ:-UTC}
-sed -i "s|;date.timezone =|date.timezone = ${PHP_TIMEZONE}|g" /usr/local/etc/php/php.ini-production
-sed -i "s|;date.timezone =|date.timezone = ${PHP_TIMEZONE}|g" /usr/local/etc/php/php.ini-development
+echo "date.timezone = ${PHP_TIMEZONE}" > /usr/local/etc/php/conf.d/timezone.ini
 
 # Start both PHP-FPM and Nginx
 php-fpm & nginx -g 'daemon off;' & touch ~/startup.txt
