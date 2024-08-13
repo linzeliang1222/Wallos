@@ -530,7 +530,7 @@ function getSubscriptionItems($perUser) {
         }
         $subscriptionItem .= "【" . ($index+1) . "】" . $subscription['name'] . " - " . $subscription['price'] . "（" . $dayText . "）\n";
     }
-    return $subscriptionItem;
+    return rtrim($subscriptionItem, "\n");
 }
 
 ?>

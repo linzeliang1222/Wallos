@@ -498,7 +498,7 @@ function getSubscriptionItems($perUser) {
     foreach ($perUser as $index => $subscription) {
         $subscriptionItem .= "【" . ($index+1) . "】" . $subscription['name'] . " - " . $subscription['price'] . "\n";
     }
-    return $subscriptionItem;
+    return rtrim($subscriptionItem, "\n");
 }
 
 ?>
