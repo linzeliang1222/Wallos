@@ -174,7 +174,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
         // Get current date to check which subscriptions are set to notify for cancellation
         $currentDate = new DateTime('now');
         // 到期前一天进行通知
-        $currentDate->modify('-1 day');
+        $currentDate->modify('+1 day');
         $currentDate = $currentDate->format('Y-m-d');
 
         $query = "SELECT * FROM subscriptions WHERE user_id = :user_id AND inactive = :inactive AND cancellation_date = :cancellationDate ORDER BY payer_user_id ASC";
@@ -200,7 +200,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
         if (!empty($notify)) {
 
-            $messageChinese = "以下订阅今日到期：\n";
+            $messageChinese = "以下订阅明天即将到期不再续费：\n";
 
             // Email notifications if enabled
             if ($emailNotificationsEnabled) {
