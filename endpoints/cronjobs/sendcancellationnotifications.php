@@ -200,7 +200,7 @@ while ($userToNotify = $usersToNotify->fetchArray(SQLITE3_ASSOC)) {
 
         if (!empty($notify)) {
 
-            $messageChinese = "以下订阅明天即将到期不再续费：\n";
+            $messageChinese = "以下订阅明天即将到期（停止续费）：\n";
 
             // Email notifications if enabled
             if ($emailNotificationsEnabled) {

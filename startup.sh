@@ -9,6 +9,11 @@ if [ ! -z "$PUID" ] && [ ! -z "$PGID" ]; then
     chown -R appuser:appgroup /var/www/html
 fi
 
+# Set PHP timezone
+PHP_TIMEZONE=${TZ:-UTC}
+sed -i "s|;date.timezone =|date.timezone = ${PHP_TIMEZONE}|g" /usr/local/etc/php/php.ini-production
+sed -i "s|;date.timezone =|date.timezone = ${PHP_TIMEZONE}|g" /usr/local/etc/php/php.ini-development
+
 # Start both PHP-FPM and Nginx
 php-fpm & nginx -g 'daemon off;' & touch ~/startup.txt
 

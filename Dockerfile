@@ -36,10 +36,6 @@ RUN dos2unix /etc/cron.d/cronjobs && \
     echo 'pm.max_children = 15' >> /usr/local/etc/php-fpm.d/zz-docker.conf && \
     echo 'pm.max_requests = 500' >> /usr/local/etc/php-fpm.d/zz-docker.conf
 
-# Set PHP timezone
-RUN sed -i "s|;date.timezone =|date.timezone = ${TZ:-UTC}|" /usr/local/etc/php/php.ini-production && \
-    sed -i "s|;date.timezone =|date.timezone = ${TZ:-UTC}|" /usr/local/etc/php/php.ini-development
-
 # Expose port 80 for Nginx
 EXPOSE 80
 
